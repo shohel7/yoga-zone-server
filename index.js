@@ -44,6 +44,17 @@ async function run() {
         .toArray();
       res.send(result);
     });
+    app.get("/popularInstructors", async (req, res) => {
+      const query = {};
+      const options = {
+        sort: { numberOfStudents: -1 },
+      };
+      const result = await popularInstructorCollection
+        .find(query, options)
+        .limit(6)
+        .toArray();
+      res.send(result);
+    });
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
