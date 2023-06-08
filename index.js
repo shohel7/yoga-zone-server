@@ -34,7 +34,14 @@ async function run() {
       .collection("popularInstructors");
 
     app.get("/popularClasses", async (req, res) => {
-      const result = await popularClassCollection.find().toArray();
+      const query = {};
+      const options = {
+        sort: { numberOfStudents: -1 },
+      };
+      const result = await popularClassCollection
+        .find(query, options)
+        .limit(6)
+        .toArray();
       res.send(result);
     });
 
