@@ -26,30 +26,44 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
-    const popularClassCollection = client
-      .db("yogaDb")
-      .collection("popularClasses");
-    const popularInstructorCollection = client
-      .db("yogaDb")
-      .collection("popularInstructors");
+    const classCollection = client.db("yogaDb").collection("classes");
+    const instructorCollection = client.db("yogaDb").collection("instructors");
+    const userCollection = client.db("yogaDb").collection("users");
 
-    app.get("/popularClasses", async (req, res) => {
+    // user related api
+    app.post("/users", async (req, res) => {
+      const user = req.body;
+
+      const query = { email: user.email };
+      const existingUser = await userCollection.findOne(query);
+      if (existingUser) {
+        return res.send({ message: "User already exists" });
+      }
+
+      const result = await userCollection.insertOne(user);
+      res.send(result);
+    });
+
+    // class related api
+    app.get("/classes", async (req, res) => {
       const query = {};
       const options = {
         sort: { numberOfStudents: -1 },
       };
-      const result = await popularClassCollection
+      const result = await classCollection
         .find(query, options)
         .limit(6)
         .toArray();
       res.send(result);
     });
-    app.get("/popularInstructors", async (req, res) => {
+
+    // instructor related api
+    app.get("/instructors", async (req, res) => {
       const query = {};
       const options = {
         sort: { numberOfStudents: -1 },
       };
-      const result = await popularInstructorCollection
+      const result = await instructorCollection
         .find(query, options)
         .limit(6)
         .toArray();
