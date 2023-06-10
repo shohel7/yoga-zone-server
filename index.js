@@ -2,7 +2,7 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 // const jwt = require("jsonwebtoken");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 const port = process.env.PORT || 5000;
 
@@ -31,6 +31,11 @@ async function run() {
     const userCollection = client.db("yogaDb").collection("users");
 
     // user related api
+    app.get("/users", async (req, res) => {
+      const result = await userCollection.find().toArray();
+      res.send(result);
+    });
+
     app.post("/users", async (req, res) => {
       const user = req.body;
 
@@ -41,6 +46,18 @@ async function run() {
       }
 
       const result = await userCollection.insertOne(user);
+      res.send(result);
+    });
+
+    app.patch("/users/admin/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updateUser = {
+        $set: {
+          role: "admin" || "instructor",
+        },
+      };
+      const result = await userCollection.updateOne(filter, updateUser);
       res.send(result);
     });
 
