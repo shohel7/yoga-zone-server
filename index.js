@@ -48,9 +48,14 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
-    const classCollection = client.db("yogaDb").collection("classes");
-    const instructorCollection = client.db("yogaDb").collection("instructors");
+    const popularClassCollection = client
+      .db("yogaDb")
+      .collection("popularClasses");
+    const popularInstructorCollection = client
+      .db("yogaDb")
+      .collection("popularInstructors");
     const userCollection = client.db("yogaDb").collection("users");
+    const classCollection = client.db("yogaDb").collection("classes");
 
     // jwt token
     app.post("/jwt", (req, res) => {
@@ -131,29 +136,98 @@ async function run() {
       res.send(result);
     });
 
+    // check Instructor
+    app.get("/users/instructor/:email", verifyJWT, async (req, res) => {
+      const email = req.params.email;
+
+      if (req.decoded.email !== email) {
+        res.send({ instructor: false });
+      }
+
+      const query = { email: email };
+      const user = await userCollection.findOne(query);
+      const result = { instructor: user?.role === "instructor" };
+      res.send(result);
+    });
+
     // class related api
-    app.get("/classes", async (req, res) => {
+    app.get("/popularClasses", async (req, res) => {
       const query = {};
       const options = {
         sort: { numberOfStudents: -1 },
       };
-      const result = await classCollection
+      const result = await popularClassCollection
         .find(query, options)
         .limit(6)
         .toArray();
       res.send(result);
     });
 
+    app.get("/classes", async (req, res) => {
+      const email = req.query.instructorEmail;
+      console.log(email);
+
+      if (!email) {
+        res.send([]);
+      }
+
+      // const decodedEmail = req.decoded.email;
+      // if (email !== decodedEmail) {
+      //   return res
+      //     .status(403)
+      //     .send({ error: true, message: "forbidden access" });
+      // }
+
+      const query = { instructorEmail: email };
+      const result = await classCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    app.patch("/classes/approved/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updateUser = {
+        $set: {
+          status: "approved",
+        },
+      };
+      const result = await classCollection.updateOne(filter, updateUser);
+      res.send(result);
+    });
+    app.patch("/classes/deny/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updateUser = {
+        $set: {
+          status: "deny",
+        },
+      };
+      const result = await classCollection.updateOne(filter, updateUser);
+      res.send(result);
+    });
+
     // instructor related api
-    app.get("/instructors", async (req, res) => {
+    app.get("/popularInstructors", async (req, res) => {
       const query = {};
       const options = {
         sort: { numberOfStudents: -1 },
       };
-      const result = await instructorCollection
+      const result = await popularInstructorCollection
         .find(query, options)
         .limit(6)
         .toArray();
+      res.send(result);
+    });
+
+    app.get("/classes", async (req, res) => {
+      const result = await classCollection.find().toArray();
+      res.send(result);
+    });
+
+    app.post("/classes", async (req, res) => {
+      const body = req.body;
+      console.log(body);
+      const result = await classCollection.insertOne(body);
       res.send(result);
     });
 
