@@ -56,6 +56,9 @@ async function run() {
       .collection("popularInstructors");
     const userCollection = client.db("yogaDb").collection("users");
     const classCollection = client.db("yogaDb").collection("classes");
+    const selectedClassCollection = client
+      .db("yogaDb")
+      .collection("selectedClasses");
 
     // jwt token
     app.post("/jwt", (req, res) => {
@@ -190,6 +193,11 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/selectedClasses", async (req, res) => {
+      const result = await selectedClassCollection.find().toArray();
+      res.send(result);
+    });
+
     app.patch("/classes/approved/:id", async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
@@ -230,6 +238,13 @@ async function run() {
       const body = req.body;
       console.log(body);
       const result = await classCollection.insertOne(body);
+      res.send(result);
+    });
+
+    app.post("/selectedClasses", async (req, res) => {
+      const body = req.body;
+      console.log(body);
+      const result = await selectedClassCollection.insertOne(body);
       res.send(result);
     });
 
