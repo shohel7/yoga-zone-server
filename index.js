@@ -168,6 +168,10 @@ async function run() {
     });
 
     app.get("/classes", async (req, res) => {
+      const result = await classCollection.find().toArray();
+      res.send(result);
+    });
+    app.get("/classes/approved", async (req, res) => {
       const status = req.query.status;
       const query = { status: status };
       const result = await classCollection.find(query).toArray();
@@ -249,9 +253,18 @@ async function run() {
       res.send(result);
     });
 
+    app.delete("/selectedClasses/:id", async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      const query = { _id: new ObjectId(id) };
+      const result = await selectedClassCollection.deleteOne(query);
+      res.send(result);
+    });
+
     // create payment intent
     app.post("/create-payment-intent", async (req, res) => {
       const { price } = req.body;
+      console.log(price);
       const amount = parseInt(price * 100);
       const paymentIntent = await stripe.paymentIntents.create({
         amount: amount,
