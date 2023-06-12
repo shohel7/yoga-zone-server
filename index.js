@@ -164,6 +164,13 @@ async function run() {
     });
 
     app.get("/classes", async (req, res) => {
+      const status = req.query.status;
+      const query = { status: status };
+      const result = await classCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    app.get("/classes", async (req, res) => {
       const email = req.query.instructorEmail;
       console.log(email);
 
@@ -216,11 +223,6 @@ async function run() {
         .find(query, options)
         .limit(6)
         .toArray();
-      res.send(result);
-    });
-
-    app.get("/classes", async (req, res) => {
-      const result = await classCollection.find().toArray();
       res.send(result);
     });
 
